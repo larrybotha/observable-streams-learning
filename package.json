@@ -1,0 +1,44 @@
+{
+  "name": "observable-streams-learning",
+  "version": "1.0.0",
+  "description": "Learning how to work with observable streams",
+  "main": ".huskyrc.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test:watch": "jest --watch",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/larrybotha/observable-streams-learning.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/larrybotha/observable-streams-learning/issues"
+  },
+  "homepage": "https://github.com/larrybotha/observable-streams-learning#readme",
+  "dependencies": {
+    "@most/core": "^1.5.0",
+    "@most/disposable": "^1.2.2",
+    "@most/scheduler": "^1.2.3",
+    "rxjs": "^6.5.5",
+    "xstate": "^4.9.1"
+  },
+  "devDependencies": {
+    "@most/types": "^1.0.2",
+    "@rollup/plugin-sucrase": "^3.0.0",
+    "@rollup/plugin-typescript": "^4.1.1",
+    "babel-jest": "^25.4.0",
+    "doctoc": "^1.4.0",
+    "husky": "^4.2.5",
+    "jest": "^25.4.0",
+    "jest-watch-typeahead": "^0.5.0",
+    "lint-staged": "^10.1.7",
+    "svelte-jester": "^1.0.5",
+    "typescript": "^3.8.3"
+  }
+}
