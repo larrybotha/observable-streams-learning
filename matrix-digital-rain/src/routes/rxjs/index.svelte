@@ -1,8 +1,9 @@
-<script>
-  import { matrix$ } from "./_streams/matrix.ts";
-  import Matrix from "../../components/matrix.svelte";
+<ul>
+  <li>
+    <a href="rxjs/matrix-naive">naive matrix digital rain</a>
+  </li>
 
-  $: console.log($matrix$);
-</script>
-
-<Matrix {matrix$} />
+  <li>
+    <a href="rxjs/matrix">matrix digital rain</a>
+  </li>
+</ul>

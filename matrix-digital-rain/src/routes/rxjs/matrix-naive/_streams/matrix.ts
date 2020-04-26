@@ -5,8 +5,8 @@ import {
   markForRemoval,
   updateLines,
   updateMatrix,
-} from "../../../lib/matrix-naive";
-import { Matrix } from "../../../lib/matrix-naive/interfaces";
+} from "../../../../lib/matrix-naive";
+import { Matrix } from "../../../../lib/matrix-naive/interfaces";
 
 const matrix$ = interval(300).pipe(
   startWith([]),
