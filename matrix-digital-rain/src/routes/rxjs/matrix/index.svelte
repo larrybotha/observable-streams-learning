@@ -1,9 +1,19 @@
 <script>
+  import { interval } from "rxjs";
+  import { scan, take, tap, takeUntil, startWith } from "rxjs/operators";
   import { interpret } from "xstate";
   import Char from "./_components/char.svelte";
-  import { charMachine } from "./_machines/char-machine.ts";
+  import { createCharMachine } from "./_machines/char-machine.ts";
 
-  const chars = Array.from({ length: 30 }).map(() => interpret(charMachine));
+  const chars$ = interval(100).pipe(
+    take(30),
+    startWith([]),
+    scan(xs => {
+      const service = interpret(createCharMachine()).start();
+
+      return xs.concat(service);
+    }, [])
+  );
 </script>
 
 <style>
@@ -14,7 +24,7 @@
 </style>
 
 <div class="canvas">
-  {#each chars as char}
-    <Char />
+  {#each $chars$ as service (service.sessionId)}
+    <Char {service} />
   {/each}
 </div>

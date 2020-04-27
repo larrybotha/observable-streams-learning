@@ -2,8 +2,10 @@
   import { interpret } from "xstate";
   import { from } from "rxjs";
 
+  import { createCharMachine } from "../_machines/char-machine.ts";
+
   export let service;
-  const char$ = from(service.start());
+  let char$ = from(service);
 </script>
 
 <style>
@@ -12,15 +14,12 @@
     --opacity: 1;
     color: var(--color);
     opacity: var(--opacity);
-    font-size: 3rem;
     transition: all 0.3s linear;
   }
 </style>
 
-<div class="canvas">
-  <div
-    class="char"
-    style="--opacity: {$char$.context.opacity}; --color: {$char$.context.color}">
-    {$char$.context.char}
-  </div>
+<div
+  class="char"
+  style="--opacity: {$char$.context.opacity}; --color: {$char$.context.color}">
+  {$char$.context.char}
 </div>
