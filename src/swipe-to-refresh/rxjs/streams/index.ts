@@ -1,18 +1,21 @@
-import {fromEvent, merge} from 'rxjs';
-import {switchMap, takeUntil, repeat} from 'rxjs/operators';
+import {of, fromEvent, merge, combineLatest} from 'rxjs';
+import {tap, take, filter, switchMap, takeUntil, repeat, shareReplay} from 'rxjs/operators';
 
-const createStream = (el: HTMLElement) => {
-  const mouseDown$ = merge(fromEvent(el, 'mousedown'), fromEvent(el, 'touchstart'));
-  const mouseUp$ = merge(fromEvent(el, 'mouseup'), fromEvent(el, 'touchend'));
-  const mouseMove$ = merge(fromEvent(document, 'mousemove'), fromEvent(document, 'touchmove'));
-
-  const drag$ = mouseDown$.pipe(
-    switchMap(() => mouseMove$),
-    takeUntil(mouseUp$),
-    repeat(),
+const createElDragStream = (el: HTMLElement) => {
+  const el$ = of(el).pipe(filter<HTMLElement>(Boolean));
+  const mouseDown$ = merge(
+    el$.pipe(switchMap(node => fromEvent(node, 'mousedown'))),
+    el$.pipe(switchMap(node => fromEvent(node, 'touchstart'))),
   );
+  const mouseUp$ = merge(fromEvent(document, 'mouseup'), fromEvent(document, 'touchend'));
+  const mouseMove$ = merge(fromEvent(document, 'mousemove'), fromEvent(document, 'touchmove'));
+  const moveEl$ = mouseDown$.pipe(
+    switchMap(() => merge(mouseMove$.pipe(takeUntil(mouseUp$)), mouseUp$.pipe(take(1)))),
+  );
+
+  const drag$ = merge(mouseDown$, moveEl$);
 
   return drag$;
 };
 
-export {createStream};
+export {createElDragStream};
