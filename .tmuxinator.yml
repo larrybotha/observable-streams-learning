@@ -6,5 +6,5 @@ windows:
       layout: main-vertical
       panes:
         - vim
-        -
+        - npm run storybook
         -
