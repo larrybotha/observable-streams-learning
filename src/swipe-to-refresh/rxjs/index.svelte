@@ -1,43 +1,40 @@
 <script>
-  import { never } from "rxjs";
-  import { tap, filter, map, distinctUntilChanged } from "rxjs/operators";
-  import { createStream } from "./streams/index.ts";
-  import { spring } from "svelte/motion";
+  import {never} from 'rxjs';
+  import {tap, filter, map, distinctUntilChanged} from 'rxjs/operators';
+  import {createElDragStream} from './streams/index.ts';
+  import {spring} from 'svelte/motion';
 
   let el;
   let y = spring(0);
-  let drag$ = never();
+  let elDrag$ = never();
+  let mousedown$ = never();
+  let mouseup$ = never();
+  let yPos$ = never();
 
   $: if (el) {
-    drag$ = createStream(el);
+    elDrag$ = createElDragStream(el);
   }
-  $: console.log($drag$);
+  $: if (el) {
+    mousedown$ = elDrag$.pipe(filter(({type}) => /(start|down)/.test(type)));
+    mouseup$ = elDrag$.pipe(filter(({type}) => /(up|end)/.test(type)));
+    yPos$ = elDrag$.pipe(
+      filter(({type}) => /move/.test(type)),
+      map(({clientY}) => clientY),
+    );
+    console.log('ere');
 
-  const mousedown$ = drag$.pipe(filter(ev => ev.type === "mousedown"));
-
-  const mousedrag$ = drag$.pipe(
-    tap(console.log.bind(console)),
-    filter(ev => ev.type === "mousemove"),
-    map(ev => event.clientY),
-    distinctUntilChanged()
-  );
-
-  const mouseup$ = drag$.pipe(filter(ev => ev.type === "mouseup"));
-
-  mousedown$.subscribe(() => {
-    y.damping = 0;
-    y.stiffness = 0;
-  });
-
-  mousedrag$.subscribe(clientY => {
-    y.set(clientY);
-  });
-
-  mouseup$.subscribe(() => {
-    y.damping = 0.4;
-    y.stiffness = 0.1;
-    y.set(0);
-  });
+    mousedown$.subscribe(() => {
+      console.log('sdf');
+      y.damping = 0;
+      y.stiffness = 0;
+    });
+    yPos$.subscribe(yPos => y.set(yPos));
+    mouseup$.subscribe(() => {
+      y.damping = 0.4;
+      y.stiffness = 0.1;
+      y.set(0);
+    });
+  }
 </script>
 
 <style>
@@ -49,4 +46,5 @@
   }
 </style>
 
+{$y}
 <div bind:this={el} style="--y: {$y}px">drag</div>
