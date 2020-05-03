@@ -21,10 +21,8 @@
       filter(({type}) => /move/.test(type)),
       map(({clientY}) => clientY),
     );
-    console.log('ere');
 
     mousedown$.subscribe(() => {
-      console.log('sdf');
       y.damping = 0;
       y.stiffness = 0;
     });
