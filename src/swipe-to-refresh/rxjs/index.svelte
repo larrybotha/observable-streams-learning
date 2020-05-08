@@ -1,38 +1,47 @@
 <script>
-  import {never} from 'rxjs';
-  import {tap, filter, map, distinctUntilChanged} from 'rxjs/operators';
+  import {onDestroy} from 'svelte';
+  import {writable} from 'svelte/store';
+  import {of, merge, never} from 'rxjs';
+  import {mapTo, take, tap, filter, map, switchMap} from 'rxjs/operators';
   import {createElDragStream} from './streams/index.ts';
   import {spring} from 'svelte/motion';
 
   let el;
+  let elStore = writable(null);
   let y = spring(0);
-  let elDrag$ = never();
-  let mousedown$ = never();
-  let mouseup$ = never();
-  let yPos$ = never();
+  /**
+   * reactively set the store when we get an element
+   */
+  $: elStore.set(el);
+  /**
+   * take the first non-null value from the reactive store
+   */
+  $: elDrag$ = of($elStore).pipe(
+    filter(Boolean),
+    take(1),
+    switchMap(elem => createElDragStream(elem)),
+  );
+  $: mousemove$ = elDrag$.pipe(filter(({type}) => /(move)/.test(type)));
+  $: mousedown$ = elDrag$.pipe(filter(({type}) => /(mousedown|touchstart)/.test(type)));
+  $: mouseup$ = elDrag$.pipe(filter(({type}) => /(mouseup|touchend)/.test(type)));
+  $: mousedownSub = mousedown$.subscribe(({clientY}) => {
+    y.damping = 1;
+    y.stiffness = 1;
+  });
+  $: mouseupSub = mouseup$.subscribe(() => {
+    y.damping = 0.4;
+    y.stiffness = 0.1;
+  });
+  $: yPos$ = merge(mousemove$.pipe(map(({clientY}) => clientY)), mouseup$.pipe(mapTo(0)));
+  $: subs = [mouseupSub, mousedownSub];
 
-  $: if (el) {
-    elDrag$ = createElDragStream(el);
+  $: {
+    y.set($yPos$);
   }
-  $: if (el) {
-    mousedown$ = elDrag$.pipe(filter(({type}) => /(start|down)/.test(type)));
-    mouseup$ = elDrag$.pipe(filter(({type}) => /(up|end)/.test(type)));
-    yPos$ = elDrag$.pipe(
-      filter(({type}) => /move/.test(type)),
-      map(({clientY}) => clientY),
-    );
 
-    mousedown$.subscribe(() => {
-      y.damping = 0;
-      y.stiffness = 0;
-    });
-    yPos$.subscribe(yPos => y.set(yPos));
-    mouseup$.subscribe(() => {
-      y.damping = 0.4;
-      y.stiffness = 0.1;
-      y.set(0);
-    });
-  }
+  onDestroy(() => {
+    subs.map(sub => sub.unsubscribe());
+  });
 </script>
 
 <style>
@@ -40,9 +49,8 @@
     --y: 0;
     width: 4em;
     height: 4em;
-    transform: translate(0, var(--y), 0);
+    transform: translate3d(0, var(--y), 0);
   }
 </style>
 
-{$y}
 <div bind:this={el} style="--y: {$y}px">drag</div>
