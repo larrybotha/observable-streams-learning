@@ -32,8 +32,6 @@
     ).start();
   }
 
-  $: if ($service) y.set($service.context.yPos * yScalar);
-
   $: if ($service && $service.matches('mousedown')) {
     y.damping = 1;
     y.stiffness = 1;
@@ -42,7 +40,10 @@
   $: if ($service && $service.matches('mouseup')) {
     y.damping = 0.4;
     y.stiffness = 0.1;
+    y.set(0);
   }
+
+  $: if ($service) y.set($service.context.yPos * yScalar);
 </script>
 
 <Refresh bind:el y={$y} {reloadHeight} {yScalar} />
