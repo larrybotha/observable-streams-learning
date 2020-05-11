@@ -1,18 +1,21 @@
 <script>
   import {onDestroy} from 'svelte';
+  import {spring} from 'svelte/motion';
   import {writable} from 'svelte/store';
   import {combineLatest, of, merge, never} from 'rxjs';
   import {mapTo, takeUntil, take, takeWhile, tap, filter, map, switchMap} from 'rxjs/operators';
-  import {createElDragStream} from './streams/index.ts';
-  import {spring} from 'svelte/motion';
 
-  const log = tap(console.log.bind(console));
+  import {createElDragStream} from './streams/index.ts';
+
+  import Refresh from '../components/refresh.svelte';
+
   const mapClientY = map(({clientY, changedTouches}) =>
     changedTouches ? changedTouches[0].clientY : clientY,
   );
 
-  const reloadThreshold = 0.5;
-  const evPosScalar = 1 / Math.sqrt(5);
+  const reloadScalar = 0.5;
+  const reloadHeight = window.innerHeight * reloadScalar;
+  const yScalar = 1 / Math.sqrt(5);
   let el;
   let elStore = writable(null);
   let y = spring(0);
@@ -50,13 +53,12 @@
       takeUntil(mouseup$),
     ),
     mouseup$.pipe(mapTo(0)),
-  ).pipe(takeWhile(yPos => yPos < window.innerHeight * reloadThreshold));
+  ).pipe(takeWhile(yPos => yPos < reloadHeight));
   $: yPosSub = yPos$.subscribe({
     next(ev) {
-      y.set(ev * evPosScalar);
+      y.set(ev * yScalar);
     },
     complete() {
-      console.log('reloading');
       window.location.reload();
     },
   });
@@ -67,57 +69,4 @@
   });
 </script>
 
-<style>
-  h3 {
-    font-family: sans-serif;
-  }
-
-  div {
-    text-align: center;
-  }
-
-  button {
-    --y: 0;
-    --rotation: 0deg;
-    -webkit-appearance: none;
-    background-color: skyblue;
-    background-image: none;
-    border-radius: 50%;
-    border: 0;
-    color: white;
-    font-size: 2em;
-    outline: none;
-    width: 1.5em;
-    height: 1.5em;
-    transform: translate3d(0, var(--y), 0) rotateZ(var(--rotation));
-    position: relative;
-  }
-
-  span {
-    position: absolute;
-    letter-spacing: 0;
-    top: 50%;
-    left: 50%;
-    transform: translate3d(-50%, -50%, 0);
-  }
-
-  .drag-threshold-indicator {
-    --y: 0;
-    transform: translateY(calc(var(--y) - 100%));
-    text-align: center;
-  }
-</style>
-
-<h3>Drag down to refresh page</h3>
-
-<div>
-  <button bind:this={el} style="--y: {$y}px; --rotation: {$y * 3}deg">
-    <span>&orarr;</span>
-  </button>
-</div>
-
-<div
-  class="drag-threshold-indicator"
-  style="--y: {window.innerHeight * reloadThreshold * evPosScalar}px">
-  drag to here
-</div>
+<Refresh bind:el y={$y} {reloadHeight} {yScalar} />
