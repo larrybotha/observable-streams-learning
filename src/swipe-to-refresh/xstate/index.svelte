@@ -32,12 +32,18 @@
     ).start();
   }
 
+  $: if ($service && $service.matches('dragging')) {
+    console.log('dragging');
+  }
+
   $: if ($service && $service.matches('mousedown')) {
+    console.log('mousedown');
     y.damping = 1;
     y.stiffness = 1;
   }
 
-  $: if ($service && $service.matches('mouseup')) {
+  $: if ($service && $service.matches('idle')) {
+    console.log('idle');
     y.damping = 0.4;
     y.stiffness = 0.1;
     y.set(0);
