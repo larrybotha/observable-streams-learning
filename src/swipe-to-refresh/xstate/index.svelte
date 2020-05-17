@@ -15,41 +15,31 @@
 
   $: if (el) {
     service = interpret(
-      refreshMachine
-        .withContext({
-          dragY: 0,
-          el,
-          yPos: 0,
-          dragThreshold: reloadHeight,
-        })
-        .withConfig({
-          actions: {
-            handleThresholdReached() {
-              window.location.reload();
-            },
+      refreshMachine.withContext({dragY: 0, el, yPos: 0, dragThreshold: reloadHeight}).withConfig({
+        actions: {
+          handleThresholdReached() {
+            window.location.reload();
           },
-        }),
+        },
+      }),
     ).start();
   }
 
-  $: if ($service && $service.matches('dragging')) {
-    console.log('dragging');
-  }
-
   $: if ($service && $service.matches('mousedown')) {
-    console.log('mousedown');
     y.damping = 1;
     y.stiffness = 1;
   }
 
   $: if ($service && $service.matches('idle')) {
-    console.log('idle');
     y.damping = 0.4;
     y.stiffness = 0.1;
-    y.set(0);
   }
 
-  $: if ($service) y.set($service.context.yPos * yScalar);
+  $: if ($service) updateY($service.context.yPos);
+
+  async function updateY(val) {
+    await y.set(val * yScalar);
+  }
 </script>
 
 <Refresh bind:el y={$y} {reloadHeight} {yScalar} />

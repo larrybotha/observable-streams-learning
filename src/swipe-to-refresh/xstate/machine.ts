@@ -42,6 +42,8 @@ const refreshMachine = Machine(
 
     states: {
       idle: {
+        entry: 'resetY',
+
         on: {
           MOUSE_DOWN: {
             target: 'mousedown',
@@ -103,6 +105,7 @@ const refreshMachine = Machine(
 
   {
     actions: {
+      resetY: assign({yPos: _ => 0}),
       updateMouseDownY: assign({mouseDownY: (_, event: any) => event.data}),
       updateYPos: assign({yPos: ({mouseDownY}, event: any) => event.data - mouseDownY}),
       handleThresholdReached: () => {},
