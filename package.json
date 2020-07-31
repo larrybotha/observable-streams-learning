@@ -27,6 +27,7 @@
     "@most/core": "^1.5.0",
     "@most/disposable": "^1.2.2",
     "@most/scheduler": "^1.2.3",
+    "@sveltejs/pancake": "0.0.14",
     "rxjs": "^6.5.5",
     "xstate": "^4.9.1"
   },
