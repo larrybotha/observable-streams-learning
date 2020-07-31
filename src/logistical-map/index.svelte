@@ -6,22 +6,48 @@
   import {logisticalMap} from './utils';
 
   let startX = 0.1;
-  let r = 2;
-  let numValues = 10;
+  let r = 3;
+  let numValues = 100;
+  let closest;
 
   $: xs = Array.from({length: numValues})
     .map((_, i) => i + 1)
     .reduce(
       (acc, n) => {
-        return [...acc, {x: n, y: logisticalMap(r, acc.slice(-1).find(Boolean))}];
+        const y = logisticalMap(r, acc.slice(-1).find(Boolean).y);
+
+        return [...acc, {x: n, y}];
       },
       [{x: 0, y: logisticalMap(r, startX)}],
     );
 
+  $: xs2 = Array.from({length: numValues})
+    .map((_, i) => i + 1)
+    .reduce(
+      (acc, n) => {
+        const y = logisticalMap(r, acc.slice(-1).find(Boolean).y);
+        const resultY = !isFinite(y) ? 1 * (y > 0 ? 1 : -1) : y;
+
+        return [...acc, {x: n, y: resultY}];
+      },
+      [{x: 0, y: logisticalMap(r, startX + 0.00000001)}],
+    );
+
   let x1 = +Infinity;
   let x2 = -Infinity;
-  let y1 = +Infinity;
-  let y2 = -Infinity;
+  let y1 = 0;
+  let y2 = 1;
+
+  $: {
+    numValues;
+    x1 = +Infinity;
+    x2 = -Infinity;
+
+    xs.forEach((d) => {
+      if (d.x < x1) x1 = d.x;
+      if (d.x > x2) x2 = d.x;
+    });
+  }
 </script>
 
 <style>
@@ -30,20 +56,18 @@
     padding: 3em 0 2em 2em;
     margin: 0 0 36px 0;
   }
-  input {
-    font-size: inherit;
-    font-family: inherit;
-    padding: 0.5em;
-  }
+
   .grid-line {
     position: relative;
     display: block;
   }
+
   .grid-line.horizontal {
     width: calc(100% + 2em);
     left: -2em;
     border-bottom: 1px dashed #ccc;
   }
+
   .grid-line span {
     position: absolute;
     left: 0;
@@ -52,87 +76,62 @@
     font-size: 14px;
     color: #999;
   }
-  .x-label {
-    position: absolute;
-    width: 4em;
-    left: -2em;
-    bottom: -22px;
-    font-family: sans-serif;
-    font-size: 14px;
-    color: #999;
-    text-align: center;
-  }
+
   path.data {
     stroke: rgba(0, 0, 0, 0.2);
     stroke-linejoin: round;
     stroke-linecap: round;
-    stroke-width: 1px;
+    stroke-width: 2px;
     fill: none;
   }
-  .highlight {
-    stroke: #ff3e00;
-    fill: none;
-    stroke-width: 2;
-  }
-  .annotation {
-    position: absolute;
-    white-space: nowrap;
-    bottom: 1em;
-    line-height: 1.2;
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 0.2em 0.4em;
-    border-radius: 2px;
-  }
-  .annotation-point {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background-color: #ff3e00;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-  }
-  .annotation strong {
-    display: block;
-    font-size: 20px;
-  }
-  .annotation span {
-    display: block;
-    font-size: 14px;
+
+  path.data.additional {
+    stroke: red;
   }
 </style>
 
 <div>
-  {r}
+  R: {r}
   <br />
-  <input type="range" step=".05" max="4" min="2" bind:value={r} />
+  <input type="range" step=".025" max="4" min="2" bind:value={r} />
 </div>
 
 <div>
-  {startX}
+  x: {startX}
   <br />
-  <input type="range" step=".1" max="2" min="0" bind:value={startX} />
+  <input type="range" step=".05" max="1" min="0" bind:value={startX} />
 </div>
 
 <div>
-  {numValues}
+  num observations: {numValues}
   <br />
-  <input type="range" step="1" max="50" min="1" bind:value={numValues} />
+  <input type="range" step="1" max="200" min="1" bind:value={numValues} />
 </div>
 
-<Pancake.Chart {x1} {x2} {y1} {y2}>
-  <Pancake.Grid horizontal count={5} let:value>
-    <div class="grid-line horizontal">
-      <span>{value}</span>
-    </div>
-  </Pancake.Grid>
+<div class="chart">
+  <Pancake.Chart {x1} {x2} {y1} {y2}>
+    <Pancake.Grid horizontal count={5} let:value>
+      <div class="grid-line horizontal">
+        <span>{value}</span>
+      </div>
+    </Pancake.Grid>
 
-  <Pancake.Grid vertical count={5} let:value />
+    <Pancake.Grid vertical count={5} let:value>
+      <div class="grid-line vertical">
+        <span>{value}</span>
+      </div>
+    </Pancake.Grid>
 
-  <Pancake.Svg>
-    <Pancake.SvgLine data={xs} let:d>
-      <path class="data" {d} />
-    </Pancake.SvgLine>
-  </Pancake.Svg>
+    <Pancake.Svg>
+      <Pancake.SvgLine data={xs} let:d>
+        <path class="data" {d} />
+      </Pancake.SvgLine>
 
-  <Pancake.Quadtree data={xs} />
-</Pancake.Chart>
+      <Pancake.SvgLine data={xs2} let:d>
+        <path class="data additional" {d} />
+      </Pancake.SvgLine>
+    </Pancake.Svg>
+
+    <Pancake.Quadtree data={xs} bind:closest />
+  </Pancake.Chart>
+</div>
