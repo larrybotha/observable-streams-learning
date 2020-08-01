@@ -1,6 +1,4 @@
 <script>
-  import {spring} from 'svelte/motion';
-  import {interpret} from 'xstate';
   import * as Pancake from '@sveltejs/pancake';
 
   import {logisticalMap} from './utils';
