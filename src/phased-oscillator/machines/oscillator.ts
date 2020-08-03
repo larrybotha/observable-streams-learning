@@ -9,7 +9,8 @@ interface OscillatorSchema {
 
 interface OscillatorContext {
   timeUntilReset: number;
-  initialResetTime: number;
+  initialResetDelay: number;
+  lastResetTime: number;
 }
 
 type AddValueEvent = {
@@ -30,7 +31,8 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
 
   context: {
     timeUntilReset: 0,
-    initialResetTime: 2500,
+    initialResetDelay: 2500,
+    lastResetTime: performance.now(),
   },
 
   on: {
@@ -38,14 +40,14 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
       {cond: 'willReset', target: 'resetting', actions: 'clearResetId'},
 
       {
-        actions: ['addToCurrentValue'],
+        actions: [''],
       },
     ],
   },
 
   states: {
     resetting: {
-      entry: ['resetCurrentValue', 'onReset'],
+      entry: ['setResetTime', 'onReset'],
 
       on: {
         '': {
@@ -62,13 +64,7 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
 
 const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
   actions: {
-    addToCurrentValue: assign({
-      timeUntilReset: ({timeUntilReset}, event) => {
-        const {data} = event as AddValueEvent;
-
-        return timeUntilReset + data;
-      },
-    }),
+    setResetTime: assign({lastResetTime: performance.now()}),
 
     resetCurrentValue: assign({timeUntilReset: 0}),
 
