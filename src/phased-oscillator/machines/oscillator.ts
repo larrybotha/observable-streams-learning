@@ -9,7 +9,6 @@ interface OscillatorSchema {
 }
 
 interface OscillatorContext {
-  timeUntilReset: number;
   resetDelay: number;
   lastResetTime: number;
   phaseAugmentation: number;
@@ -34,7 +33,6 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
   initial: 'oscillating',
 
   context: {
-    timeUntilReset: 0,
     resetDelay: 10000,
     lastResetTime: Date.now(),
     phaseAugmentation: 0,
