@@ -35,41 +35,36 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
 
   context: {
     timeUntilReset: 0,
-    resetDelay: 2500,
-    lastResetTime: performance.now(),
+    resetDelay: 10000,
+    lastResetTime: Date.now(),
     phaseAugmentation: 0,
   },
 
   on: {
     AUGMENT_PHASE_DURATION: [
-      {cond: 'willCompletePhase', target: 'resetting', actions: ['cancelDelayedReset', 'reset']},
-
-      {
-        actions: ['augmentPhaseDuration'],
-        target: 'augmentingPhaseDuration',
-      },
+      {cond: 'willCompletePhase', target: 'resetting'},
+      {target: 'augmentingPhaseDuration'},
     ],
   },
 
   states: {
     augmentingPhaseDuration: {
-      entry: ['cancelDelayedReset'],
+      entry: ['augmentingPhaseDuration'],
 
-      on: {
-        '': 'oscillating',
-      },
+      on: {'': 'oscillating'},
     },
 
     resetting: {
-      entry: ['resetPhase', 'cancelDelayedReset', 'onReset'],
+      entry: ['resetPhase', 'onReset'],
 
-      on: {
-        '': 'oscillating',
-      },
+      on: {'': 'oscillating'},
     },
 
     oscillating: {
-      entry: 'queueReset',
+      entry: ['queueReset'],
+      exit: ['cancelDelayedReset'],
+
+      on: {RESET: 'resetting'},
     },
   },
 };
@@ -79,8 +74,14 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
     queueReset: send(
       {type: 'RESET'},
       {
-        delay: ({lastResetTime, resetDelay, phaseAugmentation}) =>
-          resetDelay - performance.now() - (lastResetTime + phaseAugmentation),
+        delay: ({lastResetTime, resetDelay, phaseAugmentation}) => {
+          const timeNow = Date.now();
+          const augmentedTime = lastResetTime + phaseAugmentation;
+          const timeSinceLastReset = timeNow - augmentedTime;
+          const delay = Math.max(0, resetDelay - timeSinceLastReset);
+
+          return delay;
+        },
         id: 'queued-reset',
       },
     ),
@@ -90,7 +91,7 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
       const ratioOfDuration = augmentation / resetDelay;
       const radiansToAdd = (Math.PI / 2) * ratioOfDuration;
       const currentRadians =
-        ((Math.PI / 2) * (performance.now() - (lastResetTime + phaseAugmentation))) / resetDelay;
+        ((Math.PI / 2) * (Date.now() - (lastResetTime + phaseAugmentation))) / resetDelay;
       const newAugmentation = resetDelay - Math.sin(currentRadians + radiansToAdd) * resetDelay;
 
       return {
@@ -100,9 +101,11 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
 
     cancelDelayedReset: cancel('queued-reset'),
 
-    resetPhase: assign({
-      lastResetTime: performance.now(),
-      phaseAugmentation: 0,
+    resetPhase: assign(() => {
+      return {
+        lastResetTime: Date.now(),
+        phaseAugmentation: 0,
+      };
     }),
 
     onReset: () => {},
@@ -111,8 +114,11 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
   guards: {
     willCompletePhase: ({phaseAugmentation, lastResetTime, resetDelay}, event) => {
       const {data} = event as AugmentPhaseDurationEvent;
+      const ratioOfDuration = data / resetDelay;
+      const augmentedTime = lastResetTime + phaseAugmentation;
+      const timeRemaining = Date.now() - augmentedTime;
 
-      return performance.now() - (lastResetTime + phaseAugmentation) >= resetDelay;
+      return timeRemaining >= resetDelay;
     },
   },
 };
