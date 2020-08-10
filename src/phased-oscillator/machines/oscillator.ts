@@ -119,6 +119,10 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
       return timeRemaining >= resetDelay;
     },
   },
+
+  activities: {
+    currentProgress: () => {},
+  },
 };
 
 const oscillatingMachine = Machine(config, options);
