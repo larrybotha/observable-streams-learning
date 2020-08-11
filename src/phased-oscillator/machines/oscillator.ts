@@ -9,6 +9,7 @@ interface OscillatorSchema {
 }
 
 interface OscillatorContext {
+  progressCallback?: (number) => void;
   resetDelay: number;
   lastResetTime: number;
   phaseAugmentation: number;
@@ -27,16 +28,18 @@ type OscillatorEvent = AugmentPhaseDurationEvent | ResetEvent;
 
 const {cancel} = actions;
 
+const defaultContext = {
+  resetDelay: 10000,
+  lastResetTime: Date.now(),
+  phaseAugmentation: 0,
+};
+
 const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent> = {
   id: 'oscillator',
 
   initial: 'oscillating',
 
-  context: {
-    resetDelay: 10000,
-    lastResetTime: Date.now(),
-    phaseAugmentation: 0,
-  },
+  context: {...defaultContext},
 
   on: {
     AUGMENT_PHASE_DURATION: [
@@ -59,6 +62,7 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
     },
 
     oscillating: {
+      activities: ['calculateProgress'],
       entry: ['queueReset'],
       exit: ['cancelDelayedReset'],
 
@@ -121,10 +125,26 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
   },
 
   activities: {
-    currentProgress: () => {},
+    calculateProgress: ({progressCallback, lastResetTime, phaseAugmentation, resetDelay}) => {
+      function doCalc() {
+        const timeSinceReset = Date.now() - lastResetTime;
+        const timeRemaining = timeSinceReset + phaseAugmentation;
+        const ratioOfDuration = timeRemaining / resetDelay;
+        const y = Math.sin((Math.PI / 2) * ratioOfDuration);
+
+        if (progressCallback) {
+          progressCallback(y);
+          requestAnimationFrame(doCalc);
+        }
+      }
+
+      if (typeof progressCallback === 'function') {
+        requestAnimationFrame(doCalc);
+      }
+    },
   },
 };
 
 const oscillatingMachine = Machine(config, options);
 
-export {oscillatingMachine};
+export {oscillatingMachine, defaultContext};

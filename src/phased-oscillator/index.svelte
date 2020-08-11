@@ -1,30 +1,23 @@
 <script>
   import {interpret} from 'xstate';
 
-  import {oscillatingMachine} from './machines/oscillator';
+  import {oscillatingMachine, defaultContext} from './machines/oscillator';
 
-  const service = interpret(oscillatingMachine).start();
+  const service = interpret(
+    oscillatingMachine.withContext({
+      ...defaultContext,
+      progressCallback: (progress) => {
+        y = progress;
+      },
+    }),
+  ).start();
   let y;
-
-  $: lastResetTime = $service.context.lastResetTime;
-  $: phaseAugmentation = $service.context.phaseAugmentation;
-  $: resetDelay = $service.context.resetDelay;
-
-  function render() {
-    const timeSinceReset = Date.now() - lastResetTime;
-    const timeRemaining = timeSinceReset + phaseAugmentation;
-    const ratioOfDuration = timeRemaining / resetDelay;
-
-    y = Math.sin((Math.PI / 2) * ratioOfDuration);
-
-    requestAnimationFrame(render);
-  }
 
   function augment() {
     service.send('AUGMENT_PHASE_DURATION', {data: 1000});
   }
 
-  requestAnimationFrame(render);
+  /*requestAnimationFrame(render);*/
 </script>
 
 {y}
