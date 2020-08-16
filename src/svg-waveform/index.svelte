@@ -1,5 +1,5 @@
 <script>
-
+  import SVG from './waveform.svg';
 </script>
 
-<br />
+<SVG />
