@@ -1,5 +1,5 @@
 <script>
-  import {spring} from 'svelte/motion';
+  import {spring, tweened} from 'svelte/motion';
   import {createEventDispatcher} from 'svelte';
 
   import parseSvgPath from 'parse-svg-path';
@@ -36,7 +36,7 @@
     };
   }, {});
 
-  const pathStore = spring(zeroPath);
+  const collapsStore = spring(zeroPath);
 
   function pathToString(pathMap) {
     return Object.keys(pathMap).reduce((acc, key) => {
@@ -60,11 +60,11 @@
   async function setExpanding() {
     const {damping, stiffness, precision} = expandingConfig;
 
-    pathStore.damping = damping;
-    pathStore.stiffness = stiffness;
-    pathStore.precision = precision;
+    collapsStore.damping = damping;
+    collapsStore.stiffness = stiffness;
+    collapsStore.precision = precision;
 
-    await pathStore.set(originalPath);
+    await collapsStore.set(originalPath);
 
     dispatchExpandEnd();
   }
@@ -72,11 +72,11 @@
   async function setCollapsing() {
     const {damping, stiffness, precision} = collapsingConfig;
 
-    pathStore.damping = damping;
-    pathStore.stiffness = stiffness;
-    pathStore.precision = precision;
+    collapsStore.damping = damping;
+    collapsStore.stiffness = stiffness;
+    collapsStore.precision = precision;
 
-    await pathStore.set(zeroPath);
+    await collapsStore.set(zeroPath);
 
     dispatchCollapseEnd();
   }
@@ -92,4 +92,4 @@
 
 <path
   style="fill:none;stroke:#DB3552;stroke-width:0.4099;stroke-linejoin:round;"
-  d={pathToString($pathStore)} />
+  d={pathToString($collapsStore)} />
