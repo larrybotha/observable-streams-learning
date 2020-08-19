@@ -1,5 +1,8 @@
 <script>
   import {onDestroy, onMount} from 'svelte';
+  import parseSvgPath from 'parse-svg-path';
+  import absSvgPath from 'abs-svg-path';
+  import normalizeSvgPath from 'normalize-svg-path';
 
   import Path from './path.svelte';
 
@@ -17,6 +20,9 @@
 
   const el = document.querySelector(selector);
   const rawPaths = el ? [...el.querySelectorAll('path')].map((path) => path.getAttribute('d')) : [];
+  const parsedPaths = rawPaths.map((rawPath) =>
+    normalizeSvgPath(absSvgPath(parseSvgPath(rawPath))),
+  );
 
   $: if (totalCompletedAnimation === rawPaths.length && state === AnimationState.expanding) {
     initiateCollapsing();
@@ -76,11 +82,11 @@
 <svelte:options immutable={true} />
 
 <svg xmlns="http://www.w3.org/2000/svg" {...svgAttributes}>
-  {#each rawPaths as path, i (i)}
+  {#each parsedPaths as parsedPath, i (i)}
     <Path
       on:collapseend={handleCollapseEnd}
       on:expandend={handleExpandEnd}
-      rawPath={path}
+      {parsedPath}
       {collapsingConfig}
       {expandingConfig}
       {state} />

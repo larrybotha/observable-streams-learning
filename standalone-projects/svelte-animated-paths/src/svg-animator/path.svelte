@@ -3,13 +3,9 @@
   import {spring, tweened} from 'svelte/motion';
   import {quartIn} from 'svelte/easing';
 
-  import parseSvgPath from 'parse-svg-path';
-  import absSvgPath from 'abs-svg-path';
-  import normalizeSvgPath from 'normalize-svg-path';
-
   import {AnimationState} from './enums';
 
-  export let rawPath;
+  export let parsedPath;
   export let state;
   export let expandingConfig = {};
   export let collapsingConfig = {
@@ -32,7 +28,6 @@
   };
 
   const dispatch = createEventDispatcher();
-  const parsedPath = normalizeSvgPath(absSvgPath(parseSvgPath(rawPath)));
   const originalPath = parsedPath.reduce((acc, [command, ...xs], i) => {
     return {...acc, [`${command}${i}`]: xs};
   }, {});
@@ -49,7 +44,7 @@
   const collapseStore = spring(originalPath, collapsingOptions);
   const expandStore = tweened(zeroPath, expandingOptions);
 
-  function pathToString(pathMap) {
+  function buildPath(pathMap) {
     return Object.keys(pathMap).reduce((acc, key) => {
       const coords = pathMap[key];
       const command = key.replace(/\d+/, '');
@@ -89,9 +84,8 @@
   function dispatchExpandEnd() {
     dispatch('expandend');
   }
-  $: console.log(state);
 </script>
 
 <path
   style="fill:none;stroke:#DB3552;stroke-width:0.4099;stroke-linejoin:round;"
-  d={pathToString(state === AnimationState.collapsing ? $collapseStore : $expandStore)} />
+  d={buildPath(state === AnimationState.collapsing ? $collapseStore : $expandStore)} />
