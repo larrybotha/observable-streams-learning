@@ -1,6 +1,7 @@
 <script>
-  import {spring, tweened} from 'svelte/motion';
   import {createEventDispatcher} from 'svelte';
+  import {spring, tweened} from 'svelte/motion';
+  import {quartIn} from 'svelte/easing';
 
   import parseSvgPath from 'parse-svg-path';
   import absSvgPath from 'abs-svg-path';
@@ -10,15 +11,24 @@
 
   export let rawPath;
   export let state;
-  export let expandingConfig = {
-    damping: 0.8,
-    stiffness: 0.3,
-    precision: 0.001,
-  };
+  export let expandingConfig = {};
   export let collapsingConfig = {
     damping: 0.2,
-    stiffness: 0.2,
     precision: 0.001,
+    stiffness: 0.1,
+  };
+
+  const expandingOptions = {
+    delay: 0,
+    duration: 400,
+    easing: quartIn,
+    ...expandingConfig,
+  };
+  const collapsingOptions = {
+    damping: 0.2,
+    precision: 0.001,
+    stiffness: 0.1,
+    ...collapsingConfig,
   };
 
   const dispatch = createEventDispatcher();
@@ -36,7 +46,8 @@
     };
   }, {});
 
-  const collapsStore = spring(zeroPath);
+  const collapseStore = spring(originalPath, collapsingOptions);
+  const expandStore = tweened(zeroPath, expandingOptions);
 
   function pathToString(pathMap) {
     return Object.keys(pathMap).reduce((acc, key) => {
@@ -58,25 +69,15 @@
   }
 
   async function setExpanding() {
-    const {damping, stiffness, precision} = expandingConfig;
-
-    collapsStore.damping = damping;
-    collapsStore.stiffness = stiffness;
-    collapsStore.precision = precision;
-
-    await collapsStore.set(originalPath);
+    collapseStore.set(originalPath);
+    await expandStore.set(originalPath);
 
     dispatchExpandEnd();
   }
 
   async function setCollapsing() {
-    const {damping, stiffness, precision} = collapsingConfig;
-
-    collapsStore.damping = damping;
-    collapsStore.stiffness = stiffness;
-    collapsStore.precision = precision;
-
-    await collapsStore.set(zeroPath);
+    expandStore.set(zeroPath);
+    await collapseStore.set(zeroPath);
 
     dispatchCollapseEnd();
   }
@@ -88,8 +89,9 @@
   function dispatchExpandEnd() {
     dispatch('expandend');
   }
+  $: console.log(state);
 </script>
 
 <path
   style="fill:none;stroke:#DB3552;stroke-width:0.4099;stroke-linejoin:round;"
-  d={pathToString($collapsStore)} />
+  d={pathToString(state === AnimationState.collapsing ? $collapseStore : $expandStore)} />
