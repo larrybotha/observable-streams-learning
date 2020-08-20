@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "abs-svg-path": "^0.1.1",
+    "d3-interpolate-path": "^2.2.1",
     "flubber": "^0.4.2",
     "normalize-svg-path": "^1.0.1",
     "parse-svg-path": "^0.1.2",

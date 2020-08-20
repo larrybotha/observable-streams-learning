@@ -5,7 +5,7 @@
 
   import {AnimationState} from './enums';
 
-  export let parsedPaths = [];
+  export let pathInterpolations = [];
   export let svgAttributes = {};
   export let collapsingConfig = {};
   export let expandingConfig = {};
@@ -13,6 +13,7 @@
 
   let totalCompletedAnimation = 0;
   let duration = 100;
+  let timestamp = Date.now();
 
   const dispatch = createEventDispatcher();
 
@@ -22,7 +23,7 @@
 
   $: if (
     animationState === AnimationState.animating &&
-    totalCompletedAnimation === parsedPaths.length
+    totalCompletedAnimation === pathInterpolations.length
   ) {
     setComplete();
   }
@@ -40,20 +41,22 @@
   }
 
   $: {
-    parsedPaths;
-    duration = Math.floor(Math.random() * (500 - 250 + 1)) + 250;
+    pathInterpolations;
+    /*duration = Math.floor(Math.random() * (700 - 500 + 1)) + 500;*/
+    duration = 2000;
+    timestamp = Date.now();
   }
 </script>
 
 <svelte:options immutable={true} />
 
 <svg {...svgAttributes}>
-  {#each parsedPaths as parsedPath, i (JSON.stringify(parsedPath))}
+  {#each pathInterpolations as pathInterpolation, i (`${timestamp}${i}`)}
     <Path
       on:complete={handlePathAnimationComplete}
-      {parsedPath}
+      {pathInterpolation}
       {collapsingConfig}
-      expandingConfig={{...expandingConfig, duration, delay: typeof expandingConfig.delay === 'function' ? expandingConfig.delay(i) : i * 2}}
+      expandingConfig={{...expandingConfig, duration}}
       state={animationState} />
   {/each}
 </svg>

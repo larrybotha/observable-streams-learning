@@ -1,5 +1,6 @@
 dependencies:
   abs-svg-path: 0.1.1
+  d3-interpolate-path: 2.2.1
   flubber: 0.4.2
   normalize-svg-path: 1.0.1
   parse-svg-path: 0.1.2
@@ -2360,6 +2361,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-KHW6M86R+FUPYGb3R5XiYjXPq7VzwxZ22buHhAEVG5ztoEcZZMLov530mmccaqA1GghZArjQV46fuc8kUqhhHw==
+  /d3-interpolate-path/2.2.1:
+    dev: false
+    resolution:
+      integrity: sha512-6qLLh/KJVzls0XtMsMpcxhqMhgVEN7VIbR/6YGZe2qlS8KDgyyVB20XcmGnDyB051HcefQXM/Tppa9vcANEA4Q==
   /d3-polygon/1.0.6:
     dev: false
     resolution:
@@ -6252,6 +6257,7 @@ specifiers:
   '@testing-library/jest-dom': ^5.5.0
   '@testing-library/svelte': ^3.0.0
   abs-svg-path: ^0.1.1
+  d3-interpolate-path: ^2.2.1
   flubber: ^0.4.2
   jest: ^26.2.2
   normalize-svg-path: ^1.0.1

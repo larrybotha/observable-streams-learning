@@ -3,9 +3,13 @@
   import {spring, tweened} from 'svelte/motion';
   import {quartIn, quintOut} from 'svelte/easing';
 
+  import parseSvgPath from 'parse-svg-path';
+  import absSvgPath from 'abs-svg-path';
+  import normalizeSvgPath from 'normalize-svg-path';
+
   import {AnimationState, PathState} from './enums';
 
-  export let parsedPath;
+  export let pathInterpolation;
   export let state;
   export let expandingConfig = {};
   export let collapsingConfig = {};
@@ -27,22 +31,12 @@
   };
 
   const dispatch = createEventDispatcher();
-  const originalPath = parsedPath.reduce((acc, [command, ...xs], i) => {
-    return {...acc, [`${command}${i}`]: xs};
-  }, {});
-  const originY = parsedPath[0][2];
-  const zeroPath = parsedPath.reduce((acc, [command, ...xs], i) => {
-    return {
-      ...acc,
-      [`${command}${i}`]: /m/i.test(command)
-        ? xs
-        : xs.map((coord, i) => (i % 2 === 0 ? coord : originY)),
-    };
-  }, {});
+  const fromPath = getTweenablePath(pathInterpolation(0));
+  const toPath = getTweenablePath(pathInterpolation(1));
 
-  const expandStore = tweened(zeroPath, expandingOptions);
-  /*const collapseStore = spring(originalPath, collapsingOptions);*/
-  const collapseStore = tweened(originalPath, {
+  const expandStore = tweened(toPath, expandingOptions);
+  /*const collapseStore = spring(fromPath, collapsingOptions);*/
+  const collapseStore = tweened(fromPath, {
     ...expandingOptions,
     easing: quintOut,
   });
@@ -75,19 +69,40 @@
     pathState = PathState.complete;
   }
 
+  /*function getTweenablePath(xs) {*/
+  /*const rawPath = 'M' + xs.join('L');*/
+
+  /*const parsedPath = normalizeSvgPath(absSvgPath(parseSvgPath(rawPath)));*/
+  /*const tweenablePath = parsedPath.reduce((acc, [command, ...xs], i) => {*/
+  /*return {...acc, [`${command}${i}`]: xs};*/
+  /*}, {});*/
+
+  /*return tweenablePath;*/
+  /*}*/
+
+  function getTweenablePath(rawResultPath) {
+    const parsedResultPath = normalizeSvgPath(absSvgPath(parseSvgPath(rawResultPath)));
+
+    const tweenablePath = parsedResultPath.reduce((acc, [command, ...xs], i) => {
+      return {...acc, [`${command}${i}`]: xs};
+    }, {});
+
+    return tweenablePath;
+  }
+
   async function expandPath() {
-    await expandStore.set(originalPath);
+    await expandStore.set(fromPath);
 
     transitionToCollapsing();
 
     expandStore.damping = 0;
     expandStore.stiffness = 0;
 
-    expandStore.set(zeroPath);
+    expandStore.set(toPath);
   }
 
   async function collapsePath() {
-    await collapseStore.set(zeroPath);
+    await collapseStore.set(toPath);
 
     transitionToComplete();
   }
