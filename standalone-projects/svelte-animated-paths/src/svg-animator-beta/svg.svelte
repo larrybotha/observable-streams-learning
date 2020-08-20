@@ -5,7 +5,6 @@
 
   import {AnimationState} from './enums';
 
-  export let numGradientStops = 3;
   export let parsedPaths = [];
   export let svgAttributes = {};
   export let collapsingConfig = {};

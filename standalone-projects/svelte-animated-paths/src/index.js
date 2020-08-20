@@ -14,7 +14,6 @@ var app = new SvgAnimator({
   props: {
     selector: '.js-svgs',
     svgAttributes: {viewBox: '0 0 1920 650'},
-    numGradientStops: 3,
   },
 });
 

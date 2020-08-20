@@ -9,7 +9,6 @@
   import {AnimationState} from './enums';
 
   export let selector;
-  export let numGradientStops = undefined;
   export let svgAttributes = {};
   export let collapsingConfig = undefined;
   export let expandingConfig = undefined;
@@ -69,7 +68,6 @@
 
 <SVG
   parsedPaths={activeSvg}
-  {numGradientStops}
   {animationState}
   {svgAttributes}
   {collapsingConfig}
