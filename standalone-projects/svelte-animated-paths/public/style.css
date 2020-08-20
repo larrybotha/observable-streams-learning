@@ -1,0 +1,24 @@
+html {
+  background-color: #16253F;
+}
+
+path {
+  fill:none;
+  stroke: #DB3552;
+  stroke: url(#svg-wave-linear-gradient) #DB3552;
+  /*mask: url(#svg-wave-linear-gradient-mask);*/
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+
+linearGradient.svg-wave__linear-gradient :nth-child(1) {
+  stop-color: yellow;
+}
+
+linearGradient.svg-wave__linear-gradient :nth-child(2) {
+  stop-color: #DB3552;
+}
+
+linearGradient.svg-wave__linear-gradient :nth-child(3) {
+  stop-color: yellow;
+}
