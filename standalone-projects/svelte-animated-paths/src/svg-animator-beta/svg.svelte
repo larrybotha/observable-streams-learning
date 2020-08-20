@@ -5,6 +5,7 @@
 
   import {AnimationState} from './enums';
 
+  export let numGradientStops = 3;
   export let parsedPaths = [];
   export let svgAttributes = {};
   export let collapsingConfig = {};
@@ -42,14 +43,13 @@
   $: {
     parsedPaths;
     duration = Math.floor(Math.random() * (600 - 300 + 1)) + 300;
-    /*duration = 1000;*/
   }
 </script>
 
 <svelte:options immutable={true} />
 
 <svg {...svgAttributes}>
-  {#each parsedPaths as parsedPath, i (JSON.stringify(parsedPath))}
+  {#each parsedPaths as parsedPath, _ (JSON.stringify(parsedPath))}
     <Path
       on:complete={handlePathAnimationComplete}
       {parsedPath}
