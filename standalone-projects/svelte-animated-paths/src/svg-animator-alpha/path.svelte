@@ -18,12 +18,14 @@
     easing: quartIn,
     ...expandingConfig,
   };
+
   const collapsingOptions = {
     damping: 0.4,
-    precision: 0.001,
-    stiffness: 0.1,
+    precision: 0.01,
+    stiffness: 0.2,
     ...collapsingConfig,
   };
+
   const dispatch = createEventDispatcher();
   const originalPath = parsedPath.reduce((acc, [command, ...xs], i) => {
     return {...acc, [`${command}${i}`]: xs};

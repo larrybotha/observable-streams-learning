@@ -41,7 +41,7 @@
 
   $: {
     parsedPaths;
-    duration = Math.floor(Math.random() * (500 - 200 + 1)) + 200;
+    duration = Math.floor(Math.random() * (500 - 250 + 1)) + 250;
   }
 </script>
 
@@ -53,7 +53,7 @@
       on:complete={handlePathAnimationComplete}
       {parsedPath}
       {collapsingConfig}
-      expandingConfig={{...expandingConfig, duration, delay: typeof expandingConfig.delay === 'function' ? expandingConfig.delay(i) : i * 3}}
+      expandingConfig={{...expandingConfig, duration, delay: typeof expandingConfig.delay === 'function' ? expandingConfig.delay(i) : i * 2}}
       state={animationState} />
   {/each}
 </svg>
