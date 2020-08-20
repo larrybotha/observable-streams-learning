@@ -1,7 +1,7 @@
 <script>
   import {createEventDispatcher} from 'svelte';
-  import {spring, tweened} from 'svelte/motion';
-  import {backIn, backOut, quintOut, quartOut} from 'svelte/easing';
+  import {tweened} from 'svelte/motion';
+  import {backOut} from 'svelte/easing';
 
   import {AnimationState, PathState} from './enums';
 
@@ -51,7 +51,6 @@
     return store;
   });
   const collapseStores = originalPath.map(([_, ...xs], i) => {
-    /*const store = spring(xs, {...collapsingOptions});*/
     const store = tweened(xs, {
       ...expandingOptions,
       delay: i * 0.05 * expandingOptions.duration,
@@ -141,6 +140,4 @@
 
 <svelte:options immutable={true} />
 
-<path
-  style="fill:none;stroke:#DB3552;stroke-width:0.4099;stroke-linejoin:round;"
-  d={buildPath(d)} />
+<path d={buildPath(d)} />
