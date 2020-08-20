@@ -1,15 +1,11 @@
 <script>
   import {createEventDispatcher} from 'svelte';
   import {spring, tweened} from 'svelte/motion';
-  import {quartIn, quintOut} from 'svelte/easing';
-
-  import parseSvgPath from 'parse-svg-path';
-  import absSvgPath from 'abs-svg-path';
-  import normalizeSvgPath from 'normalize-svg-path';
+  import {backIn, backOut, quintOut, quartOut} from 'svelte/easing';
 
   import {AnimationState, PathState} from './enums';
 
-  export let pathInterpolation;
+  export let parsedPath;
   export let state;
   export let expandingConfig = {};
   export let collapsingConfig = {};
@@ -18,27 +14,52 @@
 
   const expandingOptions = {
     delay: 0,
-    duration: 500,
-    easing: quartIn,
+    duration: 1000,
+    easing: backOut,
     ...expandingConfig,
   };
 
   const collapsingOptions = {
-    damping: 0.4,
+    damping: 0.2,
     precision: 0.01,
-    stiffness: 0.2,
+    stiffness: 0.3,
     ...collapsingConfig,
   };
 
+  const originalPath = parsedPath;
   const dispatch = createEventDispatcher();
-  const fromPath = getTweenablePath(pathInterpolation(0));
-  const toPath = getTweenablePath(pathInterpolation(1));
+  const originY = originalPath[0][2];
+  const zeroPath = originalPath.reduce(
+    (acc, [command, ...xs], i) => [
+      ...acc,
+      [command, ...xs.map((coord, i) => (i % 2 === 0 ? coord : originY))],
+    ],
+    [],
+  );
 
-  const expandStore = tweened(toPath, expandingOptions);
-  /*const collapseStore = spring(fromPath, collapsingOptions);*/
-  const collapseStore = tweened(fromPath, {
-    ...expandingOptions,
-    easing: quintOut,
+  let d = zeroPath;
+
+  function updateDAttribute(position, coords) {
+    d = d.map((xs, i) => (i === position ? [xs[0], ...coords] : xs));
+  }
+
+  const expandStores = zeroPath.map(([_, ...xs], i) => {
+    const store = tweened(xs, {...expandingOptions, delay: i * 0.05 * expandingOptions.duration});
+
+    store.subscribe((value) => updateDAttribute(i, value));
+
+    return store;
+  });
+  const collapseStores = originalPath.map(([_, ...xs], i) => {
+    /*const store = spring(xs, {...collapsingOptions});*/
+    const store = tweened(xs, {
+      ...expandingOptions,
+      delay: i * 0.05 * expandingOptions.duration,
+    });
+
+    store.subscribe((value) => updateDAttribute(i, value));
+
+    return store;
   });
 
   $: if (state === AnimationState.animating && pathState === PathState.atRest) {
@@ -69,40 +90,34 @@
     pathState = PathState.complete;
   }
 
-  /*function getTweenablePath(xs) {*/
-  /*const rawPath = 'M' + xs.join('L');*/
-
-  /*const parsedPath = normalizeSvgPath(absSvgPath(parseSvgPath(rawPath)));*/
-  /*const tweenablePath = parsedPath.reduce((acc, [command, ...xs], i) => {*/
-  /*return {...acc, [`${command}${i}`]: xs};*/
-  /*}, {});*/
-
-  /*return tweenablePath;*/
-  /*}*/
-
-  function getTweenablePath(rawResultPath) {
-    const parsedResultPath = normalizeSvgPath(absSvgPath(parseSvgPath(rawResultPath)));
-
-    const tweenablePath = parsedResultPath.reduce((acc, [command, ...xs], i) => {
-      return {...acc, [`${command}${i}`]: xs};
-    }, {});
-
-    return tweenablePath;
-  }
-
   async function expandPath() {
-    await expandStore.set(fromPath);
+    d = zeroPath;
+
+    await Promise.all(
+      expandStores.map(async (store, i) => {
+        const [, ...xs] = originalPath[i];
+
+        await store.set(xs);
+      }),
+    );
 
     transitionToCollapsing();
 
-    expandStore.damping = 0;
-    expandStore.stiffness = 0;
-
-    expandStore.set(toPath);
+    expandStores.map((store, i) => {
+      /*store.damping = 0;*/
+      /*store.stiffness = 0;*/
+      /*store.set(zeroPath[i]);*/
+    });
   }
 
   async function collapsePath() {
-    await collapseStore.set(toPath);
+    await Promise.all(
+      collapseStores.map(async (store, i) => {
+        const [, ...xs] = zeroPath[i];
+
+        await store.set(xs);
+      }),
+    );
 
     transitionToComplete();
   }
@@ -111,15 +126,16 @@
     dispatch('complete');
   }
 
-  function buildPath(pathMap) {
-    return Object.keys(pathMap).reduce((acc, key) => {
-      const coords = pathMap[key];
-      const command = key.replace(/\d+/, '');
-      const coordString = coords.join(',');
+  function buildPath(xxs) {
+    const result = xxs.reduce((acc, [command, ...xs]) => {
+      const coordString = xs.join(',');
+
       const result = `${acc}${command}${coordString}`;
 
       return result;
     }, '');
+
+    return result;
   }
 </script>
 
@@ -127,4 +143,4 @@
 
 <path
   style="fill:none;stroke:#DB3552;stroke-width:0.4099;stroke-linejoin:round;"
-  d={buildPath(pathState === PathState.collapsing ? $collapseStore : $expandStore)} />
+  d={buildPath(d)} />

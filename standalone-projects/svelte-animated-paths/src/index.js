@@ -1,5 +1,5 @@
 //import SvgAnimator from './svg-animator/index.svelte';
-import SvgAnimatorBeta from './svg-animator-beta/index.svelte';
+import SvgAnimator from './svg-animator-beta/index.svelte';
 
 //var app = new SvgAnimator({
 //target: document.body,
@@ -9,11 +9,11 @@ import SvgAnimatorBeta from './svg-animator-beta/index.svelte';
 //},
 //});
 
-var app = new SvgAnimatorBeta({
+var app = new SvgAnimator({
   target: document.body,
   props: {
     selector: '.js-svgs',
-    svgAttributes: {viewBox: '0 0 1500 1500'},
+    svgAttributes: {viewBox: '0 0 1920 650'},
   },
 });
 

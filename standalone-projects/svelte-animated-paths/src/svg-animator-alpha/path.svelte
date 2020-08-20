@@ -1,7 +1,7 @@
 <script>
   import {createEventDispatcher} from 'svelte';
   import {spring, tweened} from 'svelte/motion';
-  import {quartIn, quintOut} from 'svelte/easing';
+  import {quartIn, quintOut, quartOut} from 'svelte/easing';
 
   import {AnimationState, PathState} from './enums';
 
@@ -15,14 +15,14 @@
   const expandingOptions = {
     delay: 0,
     duration: 500,
-    easing: quartIn,
+    easing: quartOut,
     ...expandingConfig,
   };
 
   const collapsingOptions = {
-    damping: 0.4,
+    damping: 0.1,
     precision: 0.01,
-    stiffness: 0.2,
+    stiffness: 0.1,
     ...collapsingConfig,
   };
 
@@ -41,11 +41,11 @@
   }, {});
 
   const expandStore = tweened(zeroPath, expandingOptions);
-  /*const collapseStore = spring(originalPath, collapsingOptions);*/
-  const collapseStore = tweened(originalPath, {
-    ...expandingOptions,
-    easing: quintOut,
-  });
+  const collapseStore = spring(originalPath, collapsingOptions);
+  /*const collapseStore = tweened(originalPath, {*/
+  /*...expandingOptions,*/
+  /*easing: quintOut,*/
+  /*});*/
 
   $: if (state === AnimationState.animating && pathState === PathState.atRest) {
     transitionToExpanding();
