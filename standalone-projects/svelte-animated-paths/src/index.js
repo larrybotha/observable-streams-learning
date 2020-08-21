@@ -1,13 +1,4 @@
-//import SvgAnimator from './svg-animator/index.svelte';
 import SvgAnimator from './svg-animator-beta/index.svelte';
-
-//var app = new SvgAnimator({
-//target: document.body,
-//props: {
-//selector: 'svg',
-//svgAttributes: {viewBox: '0 0 1024 267'},
-//},
-//});
 
 var app = new SvgAnimator({
   target: document.body,
