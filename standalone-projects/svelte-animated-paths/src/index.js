@@ -1,4 +1,4 @@
-import SvgAnimator from './svg-animator-beta/index.svelte';
+import SvgAnimator from './svg-wave-animator/index.svelte';
 
 var app = new SvgAnimator({
   target: document.body,

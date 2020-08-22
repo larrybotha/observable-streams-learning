@@ -1,0 +1,7 @@
+{
+  "name": "pelte-index",
+  "version": "0.0.1",
+  "svelte": "index.svelte",
+  "main": "index.js",
+  "module": "index.mjs"
+}
