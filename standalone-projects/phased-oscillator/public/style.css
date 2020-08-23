@@ -1,0 +1,10 @@
+html {
+  background-color: #16253F;
+  color: white;
+}
+
+path {
+  fill:none;
+  stroke: #DB3552;
+  stroke-width: 0.8;
+}
