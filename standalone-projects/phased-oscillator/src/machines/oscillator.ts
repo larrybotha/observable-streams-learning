@@ -29,7 +29,7 @@ type OscillatorEvent = AugmentPhaseDurationEvent | ResetEvent;
 const {cancel} = actions;
 
 const defaultContext = {
-  resetDelay: 1000,
+  resetDelay: 5_000,
   lastResetTime: Date.now(),
   phaseAugmentation: 0,
 };
@@ -50,21 +50,21 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
 
   states: {
     augmentingPhaseDuration: {
-      entry: ['augmentingPhaseDuration'],
+      entry: ['augmentPhaseDuration'],
 
       always: 'oscillating',
     },
 
     resetting: {
-      entry: ['resetPhase', 'onReset'],
+      entry: ['resetPhase', 'onReset', () => console.log('resetting')],
 
       always: 'oscillating',
     },
 
     oscillating: {
       activities: ['calculateProgress'],
-      entry: ['queueReset'],
-      exit: ['cancelDelayedReset'],
+      entry: ['queueReset', () => console.log('queuing reset')],
+      exit: ['cancelDelayedReset', () => console.log('cancelling delay')],
 
       on: {RESET: 'resetting'},
     },
@@ -98,6 +98,7 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
 
       return {
         phaseAugmentation: newAugmentation,
+        resetDelay: resetDelay - newAugmentation,
       };
     }),
 
@@ -107,6 +108,7 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
       return {
         lastResetTime: Date.now(),
         phaseAugmentation: 0,
+        resetDelay: 5000,
       };
     }),
 
@@ -127,9 +129,9 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
   activities: {
     calculateProgress: ({progressCallback, lastResetTime, phaseAugmentation, resetDelay}) => {
       function doCalc() {
-        const timeSinceReset = Date.now() - lastResetTime;
-        const timeRemaining = timeSinceReset + phaseAugmentation;
-        const ratioOfDuration = timeRemaining / resetDelay;
+        const durationSinceLastReset = Date.now() - lastResetTime;
+        const durationRemaining = Math.min(resetDelay, durationSinceLastReset + phaseAugmentation);
+        const ratioOfDuration = durationRemaining / resetDelay;
         const y = Math.sin((Math.PI / 2) * ratioOfDuration);
 
         if (progressCallback) {
