@@ -96,6 +96,8 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
         ((Math.PI / 2) * (Date.now() - (lastResetTime + phaseAugmentation))) / resetDelay;
       const newAugmentation = resetDelay - Math.sin(currentRadians + radiansToAdd) * resetDelay;
 
+      console.log(resetDelay - newAugmentation);
+
       return {
         phaseAugmentation: newAugmentation,
         resetDelay: resetDelay - newAugmentation,
@@ -118,11 +120,10 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
   guards: {
     willCompletePhase: ({phaseAugmentation, lastResetTime, resetDelay}, event) => {
       const {data} = event as AugmentPhaseDurationEvent;
-      const ratioOfDuration = data / resetDelay;
-      const augmentedTime = lastResetTime + phaseAugmentation;
-      const timeRemaining = Date.now() - augmentedTime;
+      const durationSinceLastReset = Date.now() - lastResetTime;
+      const durationRemaining = durationSinceLastReset + phaseAugmentation + data;
 
-      return timeRemaining >= resetDelay;
+      return durationRemaining >= resetDelay;
     },
   },
 
