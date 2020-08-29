@@ -122,8 +122,10 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
       const {data} = event as AugmentPhaseDurationEvent;
       const durationSinceLastReset = Date.now() - lastResetTime;
       const durationRemaining = durationSinceLastReset + phaseAugmentation + data;
+      const result = durationSinceLastReset + data;
+      console.log(result, result >= resetDelay);
 
-      return durationRemaining >= resetDelay;
+      return durationSinceLastReset + data >= resetDelay;
     },
   },
 
