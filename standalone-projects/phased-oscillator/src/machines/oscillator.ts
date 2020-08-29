@@ -11,8 +11,9 @@ interface OscillatorSchema {
 interface OscillatorContext {
   progressCallback?: (number) => void;
   resetDelay: number;
-  lastResetTime: number;
+  phaseStartTime: number;
   phaseAugmentation: number;
+  phaseDuration: number;
 }
 
 type AugmentPhaseDurationEvent = {
@@ -28,9 +29,47 @@ type OscillatorEvent = AugmentPhaseDurationEvent | ResetEvent;
 
 const {cancel} = actions;
 
+const getTimeElapsed = ({phaseDuration, phaseStartTime}: OscillatorContext) => {
+  const timeElapsed = Date.now() - phaseStartTime;
+
+  console.log(timeElapsed);
+  return timeElapsed;
+};
+
+const getAugmentationScalar = (context: OscillatorContext) => {
+  const {phaseDuration} = context;
+  /**
+   * The upper bound of our oscillator for sin(Ø)
+   *
+   * i.e. sin(90) = 1
+   */
+  const rangeCeiling = Math.PI / 2;
+  const rangeFn = Math.sin;
+  const elapsedTime = getTimeElapsed(context);
+  /**
+   * for a sin graph [0, PI / 2]:
+   * - the more time that has passed, the closer to PI / 2 we are
+   * - if time passed exceeds the phase duration, then the oscillator should reset
+   */
+  const elapsedRadians = rangeCeiling * Math.min(1, elapsedTime / phaseDuration);
+  /**
+   * Get the corresponding y value at sin(Ø)
+   */
+  const y = rangeFn(elapsedRadians);
+  /**
+   * sin(Ø) has domain [0, 1]
+   *
+   * - get the remaining y value the oscillator will traverse before resetting
+   */
+  const scalar = rangeFn(rangeCeiling) - y;
+
+  return scalar;
+};
+
 const defaultContext = {
-  resetDelay: 5_000,
-  lastResetTime: Date.now(),
+  phaseDuration: 5000,
+  resetDelay: 0,
+  phaseStartTime: Date.now(),
   phaseAugmentation: 0,
 };
 
@@ -76,41 +115,33 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
     queueReset: send(
       {type: 'RESET'},
       {
-        delay: ({lastResetTime, resetDelay, phaseAugmentation}) => {
-          const timeNow = Date.now();
-          const augmentedTime = lastResetTime + phaseAugmentation;
-          const timeSinceLastReset = timeNow - augmentedTime;
-          const delay = Math.max(0, resetDelay - timeSinceLastReset);
+        delay: (context) => {
+          const {phaseStartTime, phaseDuration} = context;
+          const timeElapsed = getTimeElapsed(context);
 
-          return delay;
+          return Math.max(0, phaseDuration - timeElapsed);
         },
         id: 'queued-reset',
       },
     ),
 
-    augmentPhaseDuration: assign(({phaseAugmentation, resetDelay, lastResetTime}, event) => {
+    augmentPhaseDuration: assign((context, event) => {
+      const {phaseDuration} = context;
       const {data: augmentation} = event as AugmentPhaseDurationEvent;
-      const ratioOfDuration = augmentation / resetDelay;
-      const radiansToAdd = (Math.PI / 2) * ratioOfDuration;
-      const currentRadians =
-        ((Math.PI / 2) * (Date.now() - (lastResetTime + phaseAugmentation))) / resetDelay;
-      const newAugmentation = resetDelay - Math.sin(currentRadians + radiansToAdd) * resetDelay;
-
-      console.log(resetDelay - newAugmentation);
+      const elapsedTime = getTimeElapsed(context);
+      const scaledAugmentation = augmentation * getAugmentationScalar(context);
 
       return {
-        phaseAugmentation: newAugmentation,
-        resetDelay: resetDelay - newAugmentation,
+        resetDelay: phaseDuration - (elapsedTime + scaledAugmentation),
       };
     }),
 
     cancelDelayedReset: cancel('queued-reset'),
 
-    resetPhase: assign(() => {
+    resetPhase: assign(({phaseDuration}) => {
       return {
-        lastResetTime: Date.now(),
-        phaseAugmentation: 0,
-        resetDelay: 5000,
+        phaseStartTime: Date.now(),
+        resetDelay: phaseDuration,
       };
     }),
 
@@ -118,21 +149,26 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
   },
 
   guards: {
-    willCompletePhase: ({phaseAugmentation, lastResetTime, resetDelay}, event) => {
-      const {data} = event as AugmentPhaseDurationEvent;
-      const durationSinceLastReset = Date.now() - lastResetTime;
-      const durationRemaining = durationSinceLastReset + phaseAugmentation + data;
-      const result = durationSinceLastReset + data;
-      console.log(result, result >= resetDelay);
+    willCompletePhase: (context, event) => {
+      const {phaseDuration} = context;
+      const {data: augmentation} = event as AugmentPhaseDurationEvent;
+      const elapsedTime = getTimeElapsed(context);
+      const scaledAugmentation = augmentation * getAugmentationScalar(context);
+      /**
+       * If elapsed time plus scaled augmentation is greater than phaseDuration,
+       * then oscillator will complete
+       */
+      const willComplete = scaledAugmentation + elapsedTime >= phaseDuration;
 
-      return durationSinceLastReset + data >= resetDelay;
+      console.log({willComplete, elapsedTime, scaledAugmentation});
+      return willComplete;
     },
   },
 
   activities: {
-    calculateProgress: ({progressCallback, lastResetTime, phaseAugmentation, resetDelay}) => {
+    calculateProgress: ({progressCallback, phaseStartTime, phaseAugmentation, resetDelay}) => {
       function doCalc() {
-        const durationSinceLastReset = Date.now() - lastResetTime;
+        const durationSinceLastReset = Date.now() - phaseStartTime;
         const durationRemaining = Math.min(resetDelay, durationSinceLastReset + phaseAugmentation);
         const ratioOfDuration = durationRemaining / resetDelay;
         const y = Math.sin((Math.PI / 2) * ratioOfDuration);
