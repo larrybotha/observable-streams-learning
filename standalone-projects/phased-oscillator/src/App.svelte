@@ -24,10 +24,10 @@
 {y}
 <br />
 
-<button on:click={augment}>augment</button>
-<pre>{JSON.stringify($service.context, null, 2)}</pre>
-<pre>{JSON.stringify(radius)}</pre>
-
 <svg viewBox="0 0 600 200">
   <circle fill="hotpink" cx="100" cy="100" r={radius} />
 </svg>
+
+<button on:click={augment}>augment</button>
+<pre>{JSON.stringify($service.context, null, 2)}</pre>
+<pre>{JSON.stringify(radius)}</pre>
