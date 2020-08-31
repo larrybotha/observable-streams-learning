@@ -9,11 +9,11 @@ interface OscillatorSchema {
 }
 
 interface OscillatorContext {
-  progressCallback?: (number) => void;
-  resetDelay: number;
-  phaseStartTime: number;
-  phaseAugmentation: number;
+  augmentations: number[];
   phaseDuration: number;
+  phaseStartTime: number;
+  progressCallback?: (x: number) => void;
+  resetDelay: number;
 }
 
 type AugmentPhaseDurationEvent = {
@@ -29,10 +29,10 @@ type OscillatorEvent = AugmentPhaseDurationEvent | ResetEvent;
 
 const {cancel} = actions;
 
-const getTimeElapsed = ({phaseDuration, phaseStartTime}: OscillatorContext) => {
-  const timeElapsed = Date.now() - phaseStartTime;
+const getTimeElapsed = ({augmentations, phaseStartTime}: OscillatorContext) => {
+  const augmentedTime = augmentations.reduce((acc, x) => acc + x, 0);
+  const timeElapsed = augmentedTime + Date.now() - phaseStartTime;
 
-  console.log(timeElapsed);
   return timeElapsed;
 };
 
@@ -70,7 +70,7 @@ const defaultContext = {
   phaseDuration: 5000,
   resetDelay: 0,
   phaseStartTime: Date.now(),
-  phaseAugmentation: 0,
+  augmentations: [],
 };
 
 const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent> = {
@@ -89,7 +89,7 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
 
   states: {
     augmentingPhaseDuration: {
-      entry: ['augmentPhaseDuration'],
+      entry: ['updateResetDelay', () => console.log('updating reset delay')],
 
       always: 'oscillating',
     },
@@ -116,23 +116,24 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
       {type: 'RESET'},
       {
         delay: (context) => {
-          const {phaseStartTime, phaseDuration} = context;
-          const timeElapsed = getTimeElapsed(context);
+          const {resetDelay} = context;
 
-          return Math.max(0, phaseDuration - timeElapsed);
+          return resetDelay;
         },
         id: 'queued-reset',
       },
     ),
 
-    augmentPhaseDuration: assign((context, event) => {
-      const {phaseDuration} = context;
+    updateResetDelay: assign((context, event) => {
+      const {augmentations, phaseDuration} = context;
       const {data: augmentation} = event as AugmentPhaseDurationEvent;
       const elapsedTime = getTimeElapsed(context);
       const scaledAugmentation = augmentation * getAugmentationScalar(context);
+      const resetDelay = phaseDuration - (elapsedTime + scaledAugmentation);
 
       return {
-        resetDelay: phaseDuration - (elapsedTime + scaledAugmentation),
+        augmentations: augmentations.concat(scaledAugmentation),
+        resetDelay,
       };
     }),
 
@@ -140,6 +141,7 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
 
     resetPhase: assign(({phaseDuration}) => {
       return {
+        augmentations: [],
         phaseStartTime: Date.now(),
         resetDelay: phaseDuration,
       };
@@ -160,17 +162,17 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
        */
       const willComplete = scaledAugmentation + elapsedTime >= phaseDuration;
 
-      console.log({willComplete, elapsedTime, scaledAugmentation});
       return willComplete;
     },
   },
 
   activities: {
-    calculateProgress: ({progressCallback, phaseStartTime, phaseAugmentation, resetDelay}) => {
+    calculateProgress: (context) => {
+      const {progressCallback, phaseDuration} = context;
+
       function doCalc() {
-        const durationSinceLastReset = Date.now() - phaseStartTime;
-        const durationRemaining = Math.min(resetDelay, durationSinceLastReset + phaseAugmentation);
-        const ratioOfDuration = durationRemaining / resetDelay;
+        const elapsedTime = getTimeElapsed(context);
+        const ratioOfDuration = elapsedTime / phaseDuration;
         const y = Math.sin((Math.PI / 2) * ratioOfDuration);
 
         if (progressCallback) {
