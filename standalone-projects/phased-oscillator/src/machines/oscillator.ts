@@ -89,21 +89,21 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
 
   states: {
     augmentingPhaseDuration: {
-      entry: ['updateResetDelay', () => console.log('updating reset delay')],
+      entry: ['updateResetDelay'],
 
       always: 'oscillating',
     },
 
     resetting: {
-      entry: ['resetPhase', 'onReset', () => console.log('resetting')],
+      entry: ['resetPhase', 'onReset'],
 
       always: 'oscillating',
     },
 
     oscillating: {
       activities: ['calculateProgress'],
-      entry: ['queueReset', () => console.log('queuing reset')],
-      exit: ['cancelDelayedReset', () => console.log('cancelling delay')],
+      entry: ['queueReset'],
+      exit: ['cancelDelayedReset'],
 
       on: {RESET: 'resetting'},
     },
