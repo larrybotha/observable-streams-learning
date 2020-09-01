@@ -1,6 +1,15 @@
-import {actions, send, assign, Machine, StateSchema, MachineConfig, MachineOptions} from 'xstate';
+import {
+  Interpreter,
+  Machine,
+  MachineConfig,
+  MachineOptions,
+  StateSchema,
+  actions,
+  assign,
+  send,
+} from 'xstate';
 
-interface OscillatorSchema {
+interface OscillatorSchema extends StateSchema {
   states: {
     augmentingPhaseDuration: {};
     resetting: {};
@@ -10,13 +19,14 @@ interface OscillatorSchema {
 
 interface OscillatorContext {
   augmentations: number[];
+  id?: string | number;
   phaseDuration: number;
   phaseStartTime: number;
   progressCallback?: (x: number) => void;
   resetDelay: number;
 }
 
-type AugmentPhaseDurationEvent = {
+export type AugmentPhaseDurationEvent = {
   type: 'AUGMENT_PHASE_DURATION';
   data: number;
 };
@@ -26,6 +36,8 @@ type ResetEvent = {
 };
 
 type OscillatorEvent = AugmentPhaseDurationEvent | ResetEvent;
+
+export type OscillatorService = Interpreter<OscillatorContext, OscillatorSchema, OscillatorEvent>;
 
 const {cancel} = actions;
 
@@ -95,7 +107,7 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
     },
 
     resetting: {
-      entry: ['resetPhase', 'onReset'],
+      entry: ['resetPhase'],
 
       always: 'oscillating',
     },
@@ -103,7 +115,7 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
     oscillating: {
       activities: ['calculateProgress'],
       entry: ['queueReset'],
-      exit: ['cancelDelayedReset'],
+      exit: ['cancelDelayedReset', 'onPhaseComplete'],
 
       on: {RESET: 'resetting'},
     },
@@ -115,11 +127,7 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
     queueReset: send(
       {type: 'RESET'},
       {
-        delay: (context) => {
-          const {resetDelay} = context;
-
-          return resetDelay;
-        },
+        delay: ({resetDelay}) => resetDelay,
         id: 'queued-reset',
       },
     ),
@@ -147,7 +155,7 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
       };
     }),
 
-    onReset: () => {},
+    onPhaseComplete: () => {},
   },
 
   guards: {

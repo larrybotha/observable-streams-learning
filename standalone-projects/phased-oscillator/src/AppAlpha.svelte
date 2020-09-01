@@ -1,20 +1,20 @@
 <script>
   import {interpret} from 'xstate';
 
-  import {oscillatorsMachine} from './machines/oscillators';
+  import {oscillatingMachine, defaultContext} from './machines/oscillator';
 
-  const service = interpret(oscillatorsMachine).start();
+  const service = interpret(
+    oscillatingMachine.withContext({
+      ...defaultContext,
+      progressCallback: (progress) => {
+        y = progress;
+      },
+    }),
+  ).start();
   let y = 0;
   const MAX_RADIUS = 20;
 
-  $: oscillators = $service.children;
   $: radius = Math.max(0, y * MAX_RADIUS);
-
-  $: console.log(oscillators);
-
-  function addOscillator() {
-    service.send('ADD_OSCILLATOR');
-  }
 
   function augment() {
     service.send('AUGMENT_PHASE_DURATION', {data: 1000});
@@ -28,7 +28,6 @@
   <circle fill="hotpink" cx="100" cy="100" r={radius} />
 </svg>
 
-<button on:click={addOscillator}>add oscillator</button>
 <button on:click={augment}>augment</button>
 <pre>{JSON.stringify($service.context, null, 2)}</pre>
 <pre>{JSON.stringify(radius)}</pre>
