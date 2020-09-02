@@ -100,7 +100,9 @@ const options: Partial<MachineOptions<OscillatorsContext, OscillatorsEvent>> = {
 
       oscillators
         .filter((oscillator) => oscillator.id !== id)
-        .map(({ref}) => ref.send('AUGMENT_PHASE_DURATION', {data: phaseDuration}));
+        .map(({ref}) =>
+          ref.send('AUGMENT_PHASE_DURATION', {data: phaseDuration / oscillators.length}),
+        );
     },
   },
 };

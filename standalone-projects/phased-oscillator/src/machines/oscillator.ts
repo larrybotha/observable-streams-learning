@@ -95,7 +95,7 @@ const config: MachineConfig<OscillatorContext, OscillatorSchema, OscillatorEvent
   on: {
     AUGMENT_PHASE_DURATION: [
       {cond: 'willCompletePhase', target: 'resetting'},
-      {target: 'augmentingPhaseDuration'},
+      {cond: 'isNotNewlyReset', target: 'augmentingPhaseDuration'},
     ],
   },
 
@@ -171,6 +171,10 @@ const options: Partial<MachineOptions<OscillatorContext, OscillatorEvent>> = {
       const willComplete = scaledAugmentation + elapsedTime >= phaseDuration;
 
       return willComplete;
+    },
+
+    isNotNewlyReset: (context) => {
+      return getTimeElapsed(context) > 2500;
     },
   },
 
