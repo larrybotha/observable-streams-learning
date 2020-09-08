@@ -19,7 +19,6 @@ interface OscillatorSchema extends StateSchema {
 
 interface OscillatorContext {
   augmentations: number[];
-  id?: string | number;
   phaseDuration: number;
   phaseStartTime: number;
   progressCallback?: (x: number) => void;

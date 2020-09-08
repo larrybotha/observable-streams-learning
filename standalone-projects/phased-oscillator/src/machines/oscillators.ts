@@ -23,10 +23,7 @@ interface OscillatorsSchema extends StateSchema {
 }
 
 interface OscillatorsContext {
-  oscillators: Array<{
-    ref: OscillatorService;
-    id: number | string;
-  }>;
+  oscillators: OscillatorService[];
 }
 
 type AddOscillatorEvent = {
@@ -75,7 +72,7 @@ const options: Partial<MachineOptions<OscillatorsContext, OscillatorsEvent>> = {
     addOscillator: assign<OscillatorsContext>({
       oscillators: (context) => {
         const {oscillators} = context;
-        const id = Date.now();
+        const id = `${Date.now()}`;
         const oscillator: any = spawn(
           oscillatingMachine.withContext({...oscillatorDefaultContext}).withConfig({
             actions: {
@@ -88,9 +85,10 @@ const options: Partial<MachineOptions<OscillatorsContext, OscillatorsEvent>> = {
               }),
             },
           }),
+          id,
         );
 
-        return oscillators.concat({ref: oscillator, id});
+        return oscillators.concat(oscillator);
       },
     }),
 
@@ -100,7 +98,7 @@ const options: Partial<MachineOptions<OscillatorsContext, OscillatorsEvent>> = {
 
       oscillators
         .filter((oscillator) => oscillator.id !== id)
-        .map(({ref}) =>
+        .map((ref) =>
           ref.send('AUGMENT_PHASE_DURATION', {data: phaseDuration / oscillators.length}),
         );
     },
