@@ -29,7 +29,7 @@
     "@most/scheduler": "^1.2.3",
     "@sveltejs/pancake": "0.0.14",
     "rxjs": "^6.5.5",
-    "xstate": "^4.9.1"
+    "xstate": "^4.9.13"
   },
   "devDependencies": {
     "@babel/core": "^7.9.6",
