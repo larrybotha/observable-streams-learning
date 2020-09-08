@@ -7,10 +7,8 @@
   let y = 0;
   const MAX_RADIUS = 20;
 
-  $: oscillators = $service.children;
+  $: oscillators = $service.context.oscillators;
   $: radius = Math.max(0, y * MAX_RADIUS);
-
-  $: console.log(oscillators);
 
   function addOscillator() {
     service.send('ADD_OSCILLATOR');
@@ -30,5 +28,7 @@
 
 <button on:click={addOscillator}>add oscillator</button>
 <button on:click={augment}>augment</button>
-<pre>{JSON.stringify($service.context, null, 2)}</pre>
-<pre>{JSON.stringify(radius)}</pre>
+
+{#each oscillators as oscillatorService}
+  <pre>{JSON.stringify(oscillatorService.state.context, null, 2)}</pre>
+{/each}
