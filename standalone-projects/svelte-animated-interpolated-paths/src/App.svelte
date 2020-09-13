@@ -1,66 +1,13 @@
-<script>
-  import {spring} from 'svelte/motion';
-  import parseSvgPath from 'parse-svg-path';
-  import absSvgPath from 'abs-svg-path';
-  import normalizeSvgPath from 'normalize-svg-path';
-
-  const el = document.querySelector('svg');
-  const paths = el.querySelectorAll('path');
-
-  const parsedPaths = [...paths].map((path) => {
-    const result = normalizeSvgPath(absSvgPath(parseSvgPath(path.getAttribute('d'))));
-
-    return result;
-  });
-
-  const firstPath = parsedPaths[6];
-  const parsedPath = firstPath.reduce((acc, [command, ...xs], i) => {
-    return {...acc, [`${command}${i}`]: xs};
-  }, {});
-  const zeroPath = firstPath.reduce((acc, [command, ...xs], i) => {
-    return {
-      ...acc,
-      [`${command}${i}`]: /m/i.test(command)
-        ? xs
-        : xs.map((coord, i) => (i % 2 === 0 ? coord : firstPath[0][2])),
-    };
-  }, {});
-
-  const s = spring(zeroPath);
-  s.damping = 0.3;
-  s.stiffness = 0.1;
-  let visible = true;
-
-  $: if (visible) {
-    s.set(parsedPath);
-  }
-
-  $: if (!visible) {
-    s.set(zeroPath);
-  }
-
-  function pathToString(path) {
-    return Object.entries(path).reduce((acc, [k, xs]) => {
-      const result = `${acc}${k.replace(/\d+/, '')}${xs.join(',')}`;
-
-      return result;
-    }, '');
-  }
-</script>
-
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  viewBox="0 0 1024 267"
-  x="0px"
-  y="0px"
-  xml:space="preserve"
-  style="enable-background:new 0 0 1024 267;">
-  <path
-    style="fill:none;stroke:#DB3552;stroke-width:0.4099;stroke-linejoin:round;"
-    d={pathToString($s)} />
-</svg>
-
-<label>
-  <input type="checkbox" bind:checked={visible} />
-  toggle me
-</label>
+<path
+  d="M0 373.1c245.1.4 410.4-2.9 486.5 11.6 44.9 9.1 59.8 12 100.9 6.5 35.9-5.2 59.9-10.7 115.2-.1
+  31.6 6 60.2 14.7 88.5 11.7 21.1-2.3 40.5-10.7 64.4-16.6 31.2-7.4 50.3-1 80.5.6 36.2 1.9 58.7-11
+  89.8-12.3 24.1-.9 44.6 7.6 69.5 13.5 41.7 9.7 65.1-.3 118.2-5.4 22.7-2.2 113.3-7.9 157.2-8.6
+  5.2-.1 80.4 0 187.5.1H1920" />
+<path
+  d="M0 374.9c907.1 1 828.1 16.6 948.7 13.8 46.5-1.1 55.5.3 83.2 4.8 9.2 1.5 18.6 3 27.9 3.6 46.7
+  3.4 67 1.2 95-3.8 78.3-14.1 114.5-19.1 185.7-19.3.4 0 164.5-.1 205.7.3 124.3 1.4-27.9.2
+  326.7-.3h47.1" />
+<path
+  d="M0 374c222-.1 588.5-.2 610.1.1 101.9 1.6 160.7 21.4 263.4 22.4 98 1 120.1-10.1 255.5-2.3 50.7
+  2.9 61.5 2.5 112.4 2 34-.4 64.1.1 91.4-2.5 48.6-4.7 69.5-16 129.3-13.1 42.6 2.1 50 3.3 92.9-2.7
+  39.3-5.5 52.4-8.8 109.5-6.9 44.4 1.2 22.1 1.2 255.5 1.1" />
