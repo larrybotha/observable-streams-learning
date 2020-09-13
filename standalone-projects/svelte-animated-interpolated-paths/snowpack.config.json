@@ -1,0 +1,5 @@
+{
+  "extends": "@snowpack/app-scripts-svelte",
+  "install": ["svelte", "svelte/motion", "svelte/easing", "svelte/store", "parse-svg-path"],
+  "plugins": []
+}
