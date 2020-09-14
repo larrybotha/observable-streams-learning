@@ -1,9 +1,8 @@
-import SvgAnimator from './svg-wave-animator/index.svelte';
+import App from './app.svelte';
 
-var app = new SvgAnimator({
+var app = new App({
   target: document.body,
   props: {
-    selector: '.js-svgs',
     svgAttributes: {viewBox: '0 0 1920 650'},
   },
 });
