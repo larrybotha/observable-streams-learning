@@ -26,11 +26,11 @@
 
 <svg {...svgAttributes}>
   {#each paths as path}
+    <path d={buildPath(path)} />
+
     {#each path as coords, i}
       <Anchor {coords} prevCoords={i > 0 ? path[i - 1] : undefined} />
     {/each}
-
-    <path d={buildPath(path)} />
   {/each}
 
   <path
