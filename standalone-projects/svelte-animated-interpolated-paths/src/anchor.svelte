@@ -8,7 +8,6 @@
     [],
   );
   $: [startAnchor, controlStart, controlEnd, endAnchor] = pairs;
-  $: console.log(pairs);
 </script>
 
 {#if controlStart}

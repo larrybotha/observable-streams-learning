@@ -4,14 +4,16 @@
   import absSvgPath from 'abs-svg-path';
   import normalizeSvgPath from 'normalize-svg-path';
 
-  import {buildPath} from './utils';
+  import {buildPath, mapPathToPath} from './utils';
 
   import Anchor from './anchor.svelte';
 
   export let svgAttributes;
   let paths = [];
 
-  $: console.log(paths);
+  $: mappedPath = paths.length ? mapPathToPath(paths[0], paths[1]) : [];
+
+  $: console.log(mappedPath);
 
   onMount(() => {
     const pathEls = Array.from(document.querySelectorAll('path'));
@@ -54,4 +56,12 @@
     d="M0 374c222-.1 588.5-.2 610.1.1 101.9 1.6 160.7 21.4 263.4 22.4 98 1 120.1-10.1 255.5-2.3 50.7
     2.9 61.5 2.5 112.4 2 34-.4 64.1.1 91.4-2.5 48.6-4.7 69.5-16 129.3-13.1 42.6 2.1 50 3.3 92.9-2.7
     39.3-5.5 52.4-8.8 109.5-6.9 44.4 1.2 22.1 1.2 255.5 1.1" />
+</svg>
+
+<svg {...svgAttributes}>
+  <path d={buildPath(mappedPath)} />
+
+  {#each mappedPath as coords, i}
+    <Anchor {coords} prevCoords={i > 0 ? mappedPath[i - 1] : undefined} />
+  {/each}
 </svg>
