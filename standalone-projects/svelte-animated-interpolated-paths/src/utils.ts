@@ -62,16 +62,16 @@ function solveCubicBezier(p0, p1, p2, p3, x) {
   p2 -= x;
   p3 -= x;
 
-  var a = p3 - 3 * p2 + 3 * p1 - p0;
-  var b = 3 * p2 - 6 * p1 + 3 * p0;
-  var c = 3 * p1 - 3 * p0;
-  var d = p0;
+  const a = p3 - 3 * p2 + 3 * p1 - p0;
+  const b = 3 * p2 - 6 * p1 + 3 * p0;
+  const c = 3 * p1 - 3 * p0;
+  const d = p0;
 
-  var roots = solveCubicEquation(a, b, c, d);
-  var result = [];
-  var root;
+  const roots = solveCubicEquation(a, b, c, d);
+  const result = [];
+  let root: number;
 
-  for (var i = 0; i < roots.length; i++) {
+  for (let i = 0; i < roots.length; i++) {
     root = roundToDecimal(roots[i], 15);
     if (root >= 0 && root <= 1) result.push(root);
   }
