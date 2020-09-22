@@ -79,15 +79,6 @@ function solveCubicBezier(p0, p1, p2, p3, x) {
   return result;
 }
 
-export function buildPath(xxs: Path) {
-  return xxs.reduce((acc, [command, ...xs]) => {
-    const coordString = xs.join(' ');
-    const result = `${acc}\n${command} ${coordString}`;
-
-    return result;
-  }, '');
-}
-
 export function mapPathToPath(path1: Path, path2: Path) {
   const result = [path1, path2]
     .reduce((acc, xxs, i) => {
@@ -114,9 +105,23 @@ export function mapPathToPath(path1: Path, path2: Path) {
       return ax > bx ? 1 : -1;
     })
     .map((xs, i, xxs) => {
+      const [command, coords] = xs;
+      const previous = i > 0 ? xxs[i - 1] : undefined;
+      // if command === 'M', continue
+      // if i - 1 command === 'M', use that x value
+
       return xs;
     });
 
   debugger;
   return result;
+}
+
+export function buildPath(xxs: Path) {
+  return xxs.reduce((acc, [command, ...xs]) => {
+    const coordString = xs.join(' ');
+    const result = `${acc}\n${command} ${coordString}`;
+
+    return result;
+  }, '');
 }
