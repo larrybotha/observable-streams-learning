@@ -116,10 +116,10 @@ export function mapPathToPath(path1: Path, path2: Path) {
       const previous = i > 0 ? xxs[i - 1] : undefined;
       const [prevCommand, ...prevCoords] = previous || [];
       const isM = /m/i.test(`${prevCommand}`);
-      const [x1, x2, x3, x4] = isM
-        ? Array(4).fill(prevCoords[0])
-        : prevCoords.slice(1).filter((_, i) => i % 2 === 1);
-      const ts = solveCubicBezier(x1, x2, x3, x4, x);
+      const [x1, x2, x3] = isM
+        ? Array(3).fill(prevCoords[0])
+        : prevCoords.filter((_, i) => i % 2 === 1);
+      const ts = solveCubicBezier(x1, x2, x3, x, x);
       debugger;
       // if control points == 0, calculate t
       // if command === 'M', continue
