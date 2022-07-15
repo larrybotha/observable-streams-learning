@@ -10,7 +10,7 @@
     "flubber": "^0.4.2",
     "normalize-svg-path": "^1.0.1",
     "parse-svg-path": "^0.1.2",
-    "svelte": "^3.24.0"
+    "svelte": "^3.49.0"
   },
   "devDependencies": {
     "@snowpack/app-scripts-svelte": "^1.8.3",
